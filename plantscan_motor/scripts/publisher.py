@@ -13,9 +13,15 @@ def talker():
         pub.publish(True)
         rospy.sleep(2.)
 
+#func that will keep track of whether or not camera did finish circle around plant
+def talker2():
+    pub2 = rospy.Publisher('done', Bool, queue_size=1)
+    #here comes condition
+        pub2.Publish(True)
+
 #function that will move motors
 def move():
-
+    #after each movement talker2 is called
 
 if __name__ = '__main__':
     try:
