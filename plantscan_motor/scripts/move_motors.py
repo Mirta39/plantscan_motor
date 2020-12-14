@@ -6,6 +6,13 @@ import time
 from dynamixel_workbench_msgs.srv import DynamixelCommand
 from dynamixel_workbench_msgs.msg import DynamixelStateList
 
+ppr=   #pictures per rotation- zadaj broj slika po krugu
+noh=   #number of heights-zadaj broj visina(najmanje 2)
+h_in_cm=   #zadaj zeljenu max visinu kamere u cm, jer nema potrebe da ide do max visine ako se skenira manja biljka
+
+angle_m=(6.5*4096)/ppr  #pomak za zeljeni broj slika pretvoren u pozicije motora
+height_m= ((h_in_cm/7.54)*4096)/(noh-1) #pomak za zeljeni broj visina pretvoren u pozicije motora, ako je max 60 i hocemo dvije visine, treba bit 0 i 60, zato noh-1
+
 
 #ocitat polozaj, pretplaceni smo na topic joint_states, u callbacku spremamo taj position i usporedujemo ga s tim kakav treba biti
 #unutar klase cu imat varijablu tipa neki goal koja cuva podatak di bi fkt motori trebali biti nakon pomaka
@@ -63,14 +70,13 @@ if __name__ == '__main__':
         m2 = Move_motors('command', 2, 'Goal_Position', 0)
         pub = rospy.Publisher('/ready', Bool, queue_size = 1)
         time.sleep(2)
-        for height in range (3):  #ova varijabla ce se mozda trebat mijenjat
-            for angle in range (10):  #i ovo prilagoditi
-                m1.move(600 * (angle + 1))
+        for height in range (noh):  #broj visina je zadan sa noh
+            m2.move(int(height_m * (height)))  #zato da pocne na nultoj visini, da je ovo na kraju bi podigli motor jednom vise nego je max
+            #time.sleep(2)
+            for angle in range (ppr):  
+                m1.move(int(angle_m * (angle))) #pocinje na poziciji 0 i ne ide do 360
                 pub.publish(True)
             m1.move(0) #mozda neg vrijednost
             #time.sleep(2)
-            m2.move(300 * (height + 1))
-            #time.sleep(2)
     except rospy.ROSInterruptException:
         pass
-
