@@ -54,6 +54,12 @@ class Move_motors():
             self.move_motor(self.command, self.id, self.addr_name, value)
         time.sleep(2)
         print(self.actual_position, self.goal_position)
+        
+    def calc_h(max_h, num_of_h):  #max_h u cm, num_of_h broj visina za slikanje
+        return int(((max_h/7.54)*4096)/(num_of_h-1))
+
+    def calc_a(num_per_rot):    #broj slika po rotaciji
+        return int((6.5*4096)/num_per_rot)
 
 
 if __name__ == '__main__':
@@ -63,13 +69,13 @@ if __name__ == '__main__':
         m2 = Move_motors('command', 2, 'Goal_Position', 0)
         pub = rospy.Publisher('/ready', Bool, queue_size = 1)
         time.sleep(2)
-        for height in range (3):  #ova varijabla ce se mozda trebat mijenjat
-            for angle in range (10):  #i ovo prilagoditi
-                m1.move(600 * (angle + 1))
+        for height in range (3):  #num_of_h
+            m2.move(300 * (height))  #umjesto 300 ide calc_h
+            #time.sleep(2)
+            for angle in range (10):  #num_per_rot
+                m1.move(600 * (angle))  #umjesto 600 ide calc_a
                 pub.publish(True)
             m1.move(0) #mozda neg vrijednost
-            #time.sleep(2)
-            m2.move(300 * (height + 1))
             #time.sleep(2)
     except rospy.ROSInterruptException:
         pass
