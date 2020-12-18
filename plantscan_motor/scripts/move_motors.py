@@ -51,10 +51,10 @@ class Move_motors():
 
     def move(self, value):
         self.goal_position = value
+        self.move_motor(self.command, self.id, self.addr_name, value)
         while self.offset > 10 :
-            self.move_motor(self.command, self.id, self.addr_name, value)
             time.sleep(0.001)
-        time.sleep(2)
+        time.sleep(1)
         print(self.actual_position, self.goal_position)
 
 
@@ -82,9 +82,10 @@ if __name__ == '__main__':
             for angle in range (5):  #i ovo prilagoditi
                 value = m1.calc_a(num_of_photo) * (angle)
                 m1.move(value)
+                pub.publish(True)
                 time.sleep(1)
                 print('nesto' + str(angle))
-                #pub.publish(True)
+                
             m1.move(0) #mozda neg vrijednost
             time.sleep(2)
             #time.sleep(2)
