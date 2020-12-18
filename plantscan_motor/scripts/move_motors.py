@@ -3,6 +3,7 @@
 import sys
 import rospy
 import time
+from std_msgs.msg import Bool
 from dynamixel_workbench_msgs.srv import DynamixelCommand
 from dynamixel_workbench_msgs.msg import DynamixelStateList
 
@@ -20,10 +21,10 @@ class Move_motors():
         elif self.id == 2 :
             self.actual_position = data.dynamixel_state[1].present_position
         self.offset = abs(self.actual_position - self.goal_position)
-        if self.offset < 10:
-            print('pozicije su dobre   ' + str(self.offset)+ '   ' + str(self.id))
-        else:
-            print('pozicije ne odgovaraju   ' + str(self.offset) + '  ' +str(self.id))
+        #if self.offset < 10:
+            #print('pozicije su dobre   ' + str(self.offset)+ '   ' + str(self.id))
+        #else:
+            #print('pozicije ne odgovaraju   ' + str(self.offset) + '  ' +str(self.id))
     #moram usporediti trenutni polozaj samotora koji je ocitan/preuzet s topica joint_states sa očekivanim položajem motora
     #očekivani položaj motora je zasnovan na tome koje smo srgumente poslali, tj koji broj za pomak motora
     #usporedujem ih pomocu boola
@@ -52,8 +53,18 @@ class Move_motors():
         self.goal_position = value
         while self.offset > 10 :
             self.move_motor(self.command, self.id, self.addr_name, value)
+            time.sleep(0.001)
         time.sleep(2)
         print(self.actual_position, self.goal_position)
+
+
+    def calc_h(self, max_h, num_of_h):  #max_h u cm, num_of_h broj visina za slikanje
+        return int(((max_h/7.54)*4096)/(num_of_h-1))
+
+    def calc_a(self, num_of_photo):    #broj slika po rotaciji
+        return int((6.5*4096)/num_of_photo)
+
+
 
 
 if __name__ == '__main__':
@@ -62,14 +73,20 @@ if __name__ == '__main__':
         m1 = Move_motors('command', 1, 'Goal_Position', 0)
         m2 = Move_motors('command', 2, 'Goal_Position', 0)
         pub = rospy.Publisher('/ready', Bool, queue_size = 1)
+        num_of_h = 3        # broj visina na kojima ce se slikati
+        num_of_photo = 5       # broj slika po jednoj rotaciji
+        max_h = 60
         time.sleep(2)
-        for height in range (3):  #ova varijabla ce se mozda trebat mijenjat
-            for angle in range (10):  #i ovo prilagoditi
-                m1.move(600 * (angle + 1))
-                pub.publish(True)
+        for height in range (num_of_h):  #ova varijabla ce se mozda trebat mijenjat
+            m2.move(m2.calc_h(max_h, num_of_h) * (height))
+            for angle in range (5):  #i ovo prilagoditi
+                value = m1.calc_a(num_of_photo) * (angle)
+                m1.move(value)
+                time.sleep(1)
+                print('nesto' + str(angle))
+                #pub.publish(True)
             m1.move(0) #mozda neg vrijednost
-            #time.sleep(2)
-            m2.move(300 * (height + 1))
+            time.sleep(2)
             #time.sleep(2)
     except rospy.ROSInterruptException:
         pass
