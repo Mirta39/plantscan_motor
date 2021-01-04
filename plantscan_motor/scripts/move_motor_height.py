@@ -64,15 +64,23 @@ if __name__ == '__main__':
         num_of_h = 4        # broj visina na kojima ce se slikati
         num_of_photo = 7      # broj slika po jednoj rotaciji
         max_h = 68
+        tag = 0
         time.sleep(2)
         for angle in range (num_of_photo):  #ova varijabla ce se mozda trebat mijenjat
             value = m2.calc_a(num_of_photo) * (angle)
             m2.move(value)
             for height in range (num_of_h): 
-                m1.move(m1.calc_h(max_h, num_of_h) * (height)) #i ovo prilagoditi
+                if tag == 0:
+                    m1.move(m1.calc_h(max_h, num_of_h) * (height)) #i ovo prilagoditi
+                else:
+                    m1.move(m1.calc_h(max_h, num_of_h) * (num_of_h-height-1)) #i ovo prilagoditi
                 pub.publish(True)
                 print('slikal sam ' + str(angle))
                 time.sleep(2)
+            if tag == 0:
+                tag = 1
+            else:
+                tag = 0
             m1.move(0)
         m1.move(0)
         m2.move(0)
